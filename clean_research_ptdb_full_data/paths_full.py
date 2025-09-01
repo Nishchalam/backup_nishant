@@ -1,0 +1,46 @@
+import os
+import torch
+import librosa
+import numpy as np
+from tqdm import tqdm
+import soundfile as sf
+
+root_path = "/speech/nishant/roots_exps/data"
+os.makedirs("all_paths", exist_ok=True)
+
+all_paths = []
+for gen in ["MALE", "FEMALE"]:
+    if gen == "MALE":
+        for ix in range(1,10):
+            all_paths.extend(os.path.join(root_path, gen, "MIC", "M0" + str(ix), x) for x in os.listdir(os.path.join(root_path, gen, "MIC", "M0" + str(ix))))
+        all_paths.extend(os.path.join(root_path, gen, "MIC", "M10", x) for x in os.listdir(os.path.join(root_path, gen, "MIC", "M10")))
+    elif gen == "FEMALE":
+        for ix in range(1,10):
+            all_paths.extend(os.path.join(root_path, gen, "MIC", "F0" + str(ix), x) for x in os.listdir(os.path.join(root_path, gen, "MIC", "F0" + str(ix))))
+        all_paths.extend(os.path.join(root_path, gen, "MIC", "F10", x) for x in os.listdir(os.path.join(root_path, gen, "MIC", "F10")))
+
+# print(all_paths)
+
+np.random.shuffle(all_paths)
+
+dbs = [0, 5, 10, 20, "clean"]
+#paths_per_db = np.array_split(all_paths, len(dbs))
+paths_per_db = all_paths
+for db in dbs:
+    train_paths = all_paths[:int(0.7 * len(all_paths))]
+    valid_paths = all_paths[int(0.7 * len(all_paths))+1 : int(0.85 * len(all_paths)) ]
+    test_paths = all_paths[int(0.85 * len(all_paths)) + 1:]
+    
+    os.makedirs(os.path.join("all_paths", str(db)), exist_ok=True)
+    
+    with open(os.path.join("all_paths", str(db), "train.scp"), "w") as f:
+        for path_name in train_paths:
+            f.write(f"{path_name}\n")
+
+    with open(os.path.join("all_paths", str(db), "valid.scp"), "w") as f:
+        for path_name in valid_paths:
+            f.write(f"{path_name}\n")        
+            
+    with open(os.path.join("all_paths", str(db), "test.scp"), "w") as f:
+        for path_name in test_paths:
+            f.write(f"{path_name}\n")
